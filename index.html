@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <title>Kreator GPS</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+<link
+  rel="stylesheet"
+  href="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.css"
+/>
+  <link rel="icon" href="https://i.postimg.cc/vHZmShtZ/toppng-com-periscope-black-outline-icon-png-512x512.png" type="image/png" />
+  <style>
+    body { margin: 0; font-family: sans-serif; overflow: hidden; }
+
+    #map { height: 100vh; width: 100%; filter: contrast(0.8) saturate(1.2); }
+
+   .left-kafel {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: bold;
+  font-size: 16px;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  pointer-events: auto;
+  user-select: none;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  backdrop-filter: blur(4px);
+  border: none;
+  color: black;
+}
+
+
+   .center-kafel {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-weight: normal;
+  font-size: 16px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1001;
+  pointer-events: auto;
+  user-select: none;
+  box-sizing: border-box;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  backdrop-filter: blur(4px);
+  border: none;
+  color: black;
+}
+
+
+    .center-kafel label {
+      font-weight: bold;
+      white-space: nowrap;
+      display: flex;
+      align-items: center;
+    }
+    .center-kafel input {
+      padding: 4px 8px;
+      font-size: 14px;
+      width: 160px;
+      border-radius: 4px;
+      border: 1px solid #ccc;
+      outline: none;
+      box-sizing: border-box;
+      color: #111;
+    }
+    .center-kafel input::placeholder {
+      color: #666;
+      opacity: 1;
+    }
+    .center-kafel input:focus {
+      border-color: #2196f3;
+      box-shadow: 0 0 5px #2196f3;
+    }
+
+    .right-kafel {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1002;
+      padding: 8px 14px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      pointer-events: auto;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      height: 36px;
+      box-sizing: border-box;
+    }
+
+    .leaflet-top.leaflet-left {
+      top: 60px !important;
+      left: 10px;
+    }
+
+    .leaflet-top.leaflet-right {
+      top: 60px !important;
+      right: 10px;
+    }
+
+    .marker {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: transparent;
+      border: none;
+    }
+
+   .plate {
+  background: white;
+  border: 2px solid black;
+  border-radius: 8px;
+  padding: 2px 8px;
+  font-weight: bold;
+  font-size: 14px;
+  margin-top: 4px;
+  min-width: 70px;
+  box-sizing: border-box;
+  text-align: center;
+  pointer-events: none;
+  user-select: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.plate-header {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 10px;
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  font-weight: bold;
+  font-size: 20px;
+  color: #0a3d62;
+  user-select: none;
+}
+    #introModal {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) scale(0);
+      background: white;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      z-index: 2000;
+      width: 300px;
+      text-align: center;
+      transition: transform 0.4s ease;
+    }
+
+    #introModal.show {
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    #introModal button {
+      margin-top: 15px;
+      padding: 6px 12px;
+      font-size: 14px;
+      background-color: #2196f3;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+#routePanel {
+  position: absolute;
+  top: 130px;
+  right: 10px;
+  width: 700px;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 8px;
+  padding: 15px 20px 20px 20px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  color: black;
+  z-index: 1001;
+  max-height: 70vh;
+  overflow-y: auto;
+  box-sizing: border-box;
+  font-family: sans-serif;
+  font-weight: normal;
+}
+
+#routePanel h3 {
+  margin-top: 0;
+  font-size: 16px;
+}
+
+#routePanel input[type="date"],
+#routePanel input[type="time"] {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+#routeTable th, #routeTable td {
+  background-color: rgba(255, 255, 255, 0.6);
+  color: black;
+  border: 1px solid rgba(0,0,0,0.2);
+  padding: 8px;
+  font-size: 14px;
+  text-align: center;
+}
+
+#routeTable th:nth-child(1), #routeTable td:nth-child(1) { width: 35%; }
+#routeTable th:nth-child(2), #routeTable td:nth-child(2) { width: 17.5%; }
+#routeTable th:nth-child(3), #routeTable td:nth-child(3) { width: 17.5%; }
+#routeTable th:nth-child(4), #routeTable td:nth-child(4) { width: 10%; }
+#routeTable th:nth-child(5), #routeTable td:nth-child(5) { width: 10%; }
+#routeTable th:nth-child(6), #routeTable td:nth-child(6) { width: 7%; }
+
+#routeTable td:first-child {
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#routePanel input {
+  width: 100%;
+  padding: 4px;
+  font-size: 12px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+  box-sizing: border-box;
+}
+#routePanel button {
+  background: #f44336;
+  color: white;
+  border: none;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+#routeTable tr {
+  position: relative;
+}
+#routeTable tr:hover button {
+  opacity: 1;
+}
+#routeTable button {
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+#routeTable {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: white;
+}
+.leaflet-routing-container {
+  display: none !important;
+}
+#routeTable tr {
+  cursor: grab;
+}
+#routeTable tr.dragging {
+  opacity: 0.7;
+  background-color: rgba(33, 150, 243, 0.2);
+  transform: scale(1.015);
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+#routeTable tbody tr {
+  transition: transform 0.2s ease, background-color 0.2s ease;
+}
+#routeTable tbody tr.dragging {
+  opacity: 0.7;
+  background-color: rgba(33, 150, 243, 0.2);
+  transform: scale(1.015);
+}
+.drag-handle {
+  cursor: grab;
+  font-weight: bold;
+  font-size: 16px;
+  margin-right: 8px;
+  color: #ddd;
+}
+.drag-handle:hover {
+  opacity: 1;
+}
+tr[draggable="true"] {
+  user-select: none;
+}
+tr:focus, tr:active {
+  outline: none !important;
+  background: white !important;
+  color: black !important;
+}
+.placeholder {
+  background: #444;
+  border: 2px dashed #999;
+  height: 40px;
+}
+#routeTable thead {
+  user-select: none;
+  pointer-events: none;
+}
+#routeTable thead th {
+  cursor: default;
+}
+.letter-marker .letter-pin {
+  background-color: #2196f3;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  border-radius: 50%;
+  text-align: center;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+.letter-circle {
+  display: inline-block;
+  background: #007bff;
+  color: white;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  line-height: 24px;
+  text-align: center;
+  font-weight: bold;
+  margin-right: 8px;
+  user-select: none;
+  font-family: Arial, sans-serif;
+  font-size: 16px;
+}
+.hidden {
+  display: none !important;
+}
+  </style>
+</head>
+<body>
+  <div class="left-kafel">Kreator GPS</div>
+  <div class="center-kafel">
+    <label for="plateInput">Tablica:</label>
+    <input type="text" id="plateInput" placeholder="np. LBN12345" />
+<input type="checkbox" id="showTableInPreview" checked style="display: none;" />
+
+  </div>
+  <div class="right-kafel" onclick="goToPreview()">Pobierz mapę</div>
+  <div id="map"></div>
+<button id="toggleRoutePanelBtn" style="
+  position: absolute;
+  top: 135px;
+  right: 15px;
+  z-index: 1002;
+  padding: 6px 12px;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0,0,0,0.6);
+  color: white;
+  backdrop-filter: blur(4px);
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  height: 36px;
+">Ukryj tabelę</button>
+  <div id="introModal">
+    <h3>Jak korzystać?</h3>
+    <p>1. Wpisz tablicę rejestracyjną na górze.<br>
+       2. Kliknij w mapę lub użyj lupki w prawym górnym rogu, aby wybrać lokalizację.<br>
+       3. Ustaw datę i godzinę.<br>
+       4. Zmień widoczność tabeli w razie potrzeby.<br>
+       5. Wykadruj widok i kliknij "Pobierz mapę".<br>
+       6. Mapa zostanie automatycznie pobrana na kolejnej stronie.<br>
+	<h3>Miłego tworzenia GPS :) </h3></p>
+    <button onclick="closeIntro()">Rozumiem</button>
+  </div>
+
+<div id="routePanel">
+<div id="plateHeader" class="plate-header">BRAK TABLICY</div>
+  <table id="routeTable">
+    <thead>
+<tr>
+  <th>Współrzędne</th>
+  <th>Data</th>
+  <th>Godzina</th>
+  <th>Dystans (km)</th>
+  <th>Czas (hh:mm)</th>
+  <th>Usuń</th>
+</tr>
+</thead>
+  <tbody></tbody>
+  </table>
+</div>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js">
+</script>
+<script src="https://unpkg.com/leaflet-routing-machine@latest/dist/leaflet-routing-machine.js"></script>
+<script>
+const accessToken = 'iGfxI5quBoIgFaUpxOCp2RMrEn7WNCpTqf1oYqS3r1ZAYijirmEGheUllO2RTwYG';
+const map = L.map('map').setView([51.25, 22.57], 6);
+L.tileLayer(`https://tile.jawg.io/jawg-lagoon/{z}/{x}/{y}{r}.png?access-token=${accessToken}`, {
+  minZoom: 0, maxZoom: 22
+}).addTo(map);
+
+function hoursToHHMM(hours) {
+  const h = Math.floor(hours);
+  const m = Math.round((hours - h) * 60);
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
+}
+
+const truckIconUrl = 'https://i.postimg.cc/9FgRFkBs/truck.png';
+let currentMarker = null;
+
+const geocoder = L.Control.geocoder({ defaultMarkGeocode: false })
+ .on('markgeocode', function (e) {
+  const center = e.geocode.center;
+  map.setView(center, 14);
+  placeMarker(center);
+  addRoutePoint(center);
+
+  setTimeout(() => {
+  routePanel.style.top = '130px';
+  toggleRoutePanelBtn.style.top = '135px';
+}, 200);
+}).addTo(map);
+
+map.on('click', function (e) {
+  placeMarker(e.latlng);
+  addRoutePoint(e.latlng);
+});
+
+function placeMarker(latlng) {
+  const plateText = document.getElementById('plateInput').value || 'BRAK';
+  const html = `<div class="marker"><img src="${truckIconUrl}" style="width: 64px; height: auto;" /><div class="plate">${plateText}</div></div>`;
+  if (currentMarker) {
+    currentMarker.setLatLng(latlng);
+  } else {
+    currentMarker = L.marker(latlng, {
+      icon: L.divIcon({ html, iconSize: [64, 80], iconAnchor: [32, 80], className: '' })
+    }).addTo(map);
+  }
+}
+function updateTruckPlate() {
+  if (currentMarker) {
+    const plateText = plateInput.value.trim() || 'BRAK';
+    const html = `<div class="marker"><img src="${truckIconUrl}" style="width: 64px; height: auto;" /><div class="plate">${plateText}</div></div>`;
+    currentMarker.setIcon(L.divIcon({
+      html,
+      iconSize: [64, 80],
+      iconAnchor: [32, 80],
+      className: ''
+    }));
+  }
+}
+function goToPreview() {
+  if (!currentMarker) {
+    alert('Kliknij na mapę lub wyszukaj lokalizację.');
+    return;
+  }
+  const center = map.getCenter();
+  const zoom = map.getZoom();
+  const plate = document.getElementById('plateInput').value.trim();
+  const markerPos = currentMarker.getLatLng();
+ const showTable = document.getElementById('showTableInPreview').checked;
+localStorage.setItem('showTable', showTable ? 'true' : 'false');
+
+  localStorage.setItem('mapData', JSON.stringify({
+    lat: markerPos.lat,
+    lng: markerPos.lng,
+    zoom,
+    plate,
+    mapCenterLat: center.lat,
+    mapCenterLng: center.lng,
+    showTable
+  }));
+
+  window.location.href = 'podglad.html';
+}
+
+
+
+function closeIntro() {
+  localStorage.setItem('introSeen', 'true');
+  document.getElementById('introModal').classList.remove('show');
+}
+
+window.onload = () => {
+  if (!localStorage.getItem('introSeen')) {
+    document.getElementById('introModal').classList.add('show');
+  }
+if (localStorage.getItem('showTable') === null) {
+  localStorage.setItem('showTable', 'false');
+  document.getElementById('showTableInPreview').checked = false;
+}
+
+};
+
+function calcDistAndTime(p1, p2) {
+  const R = 6371;
+  const dLat = (p2.lat - p1.lat) * Math.PI/180;
+  const dLng = (p2.lng - p1.lng) * Math.PI/180;
+  const a = Math.sin(dLat/2) ** 2 +
+            Math.cos(p1.lat * Math.PI/180) * Math.cos(p2.lat * Math.PI/180) *
+            Math.sin(dLng/2) ** 2;
+  const d = 2 * R * Math.asin(Math.sqrt(a));
+  const speed = 50;
+  const time = d / speed;
+  return { dist: d.toFixed(1), time: time.toFixed(2) };
+}
+
+let routePoints = [];
+let routingControl = null;
+let stopMarkers = [];
+
+function addRoutePoint(latlng) {
+  fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${latlng.lat}&lon=${latlng.lng}`)
+    .then(res => res.json())
+    .then(data => {
+      const point = {
+        latlng,
+        address: [
+          data.address.road || '',
+          data.address.house_number || ''
+        ].filter(Boolean).join(' ') + ', ' + (data.address.city || data.address.town || data.address.village || ''),
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().split(' ')[0]
+      };
+      
+      if (routePoints.length > 0) {
+        const prev = routePoints[routePoints.length - 1];
+        const res = calcDistAndTime(prev.latlng, point.latlng);
+        point.distance = parseFloat(res.dist);
+        point.duration = parseFloat(res.time);
+      } else {
+        point.distance = 0;
+        point.duration = 0;
+      }
+
+      routePoints.push(point);
+      localStorage.setItem('routePoints', JSON.stringify(routePoints));
+      localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+      
+      renderRouteTable();
+      drawRoute();
+    })
+    .catch(() => {
+      const point = {
+        latlng,
+        address: `Przystanek ${routePoints.length + 1}`,
+        date: new Date().toISOString().split('T')[0],
+        time: new Date().toTimeString().split(':').slice(0, 2).join(':'),
+        distance: 0,
+        duration: 0
+      };
+      routePoints.push(point);
+      localStorage.setItem('routePoints', JSON.stringify(routePoints));
+      localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+      renderRouteTable();
+      drawRoute();
+    });
+}
+
+function updateDistancesAndDurations(points) {
+  for (let i = 0; i < points.length; i++) {
+    if (i === 0) {
+      points[i].distance = 0;
+      points[i].duration = 0;
+    } else {
+      const res = calcDistAndTime(points[i - 1].latlng, points[i].latlng);
+      points[i].distance = parseFloat(res.dist);
+      points[i].duration = parseFloat(res.time);
+    }
+  }
+}
+
+function renderRouteTable() {
+  const tbody = document.querySelector("#routeTable tbody");
+  tbody.innerHTML = "";
+  routePoints.forEach((point, index) => {
+    const tr = document.createElement("tr");
+    const tdIndex = document.createElement("td");
+    
+    const letter = String.fromCharCode(65 + index);
+    tdIndex.innerHTML = `<span class="drag-handle">☰</span><strong class="letter-circle">${letter}</strong> ${point.latlng.lat.toFixed(6)}, ${point.latlng.lng.toFixed(6)}`;
+
+    const tdDate = document.createElement("td");
+const inputDate = document.createElement("input");
+inputDate.type = "date";
+inputDate.value = point.date;
+inputDate.oninput = () => {
+  point.date = inputDate.value;
+  localStorage.setItem('routePoints', JSON.stringify(routePoints));
+  localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+};
+tdDate.appendChild(inputDate);
+
+const tdTime = document.createElement("td");
+const inputTime = document.createElement("input");
+inputTime.type = "time";
+inputTime.step = 1;
+inputTime.value = point.time;
+inputTime.oninput = () => {
+  point.time = inputTime.value;
+  localStorage.setItem('routePoints', JSON.stringify(routePoints));
+  localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+};
+tdTime.appendChild(inputTime);
+
+
+    const tdDist = document.createElement("td");
+    const tdTime2 = document.createElement("td");
+    if (index > 0) {
+      const prev = routePoints[index - 1];
+      const res = calcDistAndTime(prev.latlng, point.latlng);
+      point.distance = res.dist;
+      point.duration = res.time;
+      tdDist.textContent = res.dist;
+      tdTime2.textContent = hoursToHHMM(parseFloat(res.time));
+    } else {
+      tdDist.textContent = '-';
+      tdTime2.textContent = '-';
+    }
+
+    const tdDel = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.textContent = "×";
+    btn.onclick = () => {
+      routePoints.splice(index, 1);
+      updateDistancesAndDurations(routePoints);
+      localStorage.setItem('routePoints', JSON.stringify(routePoints));
+      localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+      renderRouteTable();
+      drawRoute();
+    };
+    tdDel.appendChild(btn);
+
+    tr.append(tdIndex, tdDate, tdTime, tdDist, tdTime2, tdDel);
+    tbody.appendChild(tr);
+  });
+
+  localStorage.setItem('routePoints', JSON.stringify(routePoints));
+
+  enableRowDragging(tbody);
+}
+
+function drawRoute() {
+  if (routingControl) {
+    map.removeControl(routingControl);
+    routingControl = null;
+  }
+  
+  stopMarkers.forEach(m => map.removeLayer(m));
+  stopMarkers = [];
+
+  if (routePoints.length >= 2) {
+    const waypoints = routePoints.map(p => L.latLng(p.latlng.lat, p.latlng.lng));
+    routingControl = L.Routing.control({
+      waypoints,
+      lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
+      createMarker: () => null,
+      routeWhileDragging: false,
+      addWaypoints: false,
+      show: false
+    }).addTo(map);
+
+    routePoints.forEach((point, idx) => {
+      if (idx === routePoints.length - 1) return;
+      const label = String.fromCharCode(65 + idx);
+      const marker = L.marker(point.latlng, {
+        icon: L.divIcon({
+          className: 'letter-marker',
+          html: `<div class="letter-pin">${label}</div>`,
+          iconSize: [24, 24],
+          iconAnchor: [12, 12]
+        })
+      }).addTo(map);
+      stopMarkers.push(marker);
+    });
+
+    if (currentMarker) {
+      currentMarker.setLatLng(routePoints[routePoints.length - 1].latlng);
+    } else {
+      placeMarker(routePoints[routePoints.length - 1].latlng);
+    }
+
+    const latlngs = routePoints.map(p => p.latlng);
+    map.fitBounds(L.latLngBounds(latlngs), { padding: [60, 60] });
+
+  } else if (routePoints.length === 1) {
+    if (currentMarker) {
+      currentMarker.setLatLng(routePoints[0].latlng);
+    } else {
+      placeMarker(routePoints[0].latlng);
+    }
+    map.setView(routePoints[0].latlng, map.getZoom());
+  } else {
+    if (currentMarker) {
+      map.removeLayer(currentMarker);
+      currentMarker = null;
+    }
+  }
+}
+
+function enableRowDragging(tbody) {
+  let draggedRow = null;
+
+  tbody.querySelectorAll('tr').forEach((tr, index) => {
+    tr.draggable = true;
+    tr.addEventListener('dragstart', e => {
+      draggedRow = tr;
+      tr.classList.add('dragging');
+    });
+
+    tr.addEventListener('dragover', e => {
+      e.preventDefault();
+      const overRow = e.target.closest('tr');
+      if (overRow && overRow !== draggedRow) {
+        const rows = Array.from(tbody.querySelectorAll('tr'));
+        const draggedIndex = rows.indexOf(draggedRow);
+        const overIndex = rows.indexOf(overRow);
+        if (draggedIndex < overIndex) {
+          tbody.insertBefore(draggedRow, overRow.nextSibling);
+        } else {
+          tbody.insertBefore(draggedRow, overRow);
+        }
+      }
+    });
+
+    tr.addEventListener('dragend', () => {
+      draggedRow.classList.remove('dragging');
+      draggedRow = null;
+
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const newOrder = rows.map(row => {
+        const coordsText = row.cells[0].textContent.trim().replace(/^☰\s*/, '');
+        const parts = coordsText.split(' ');
+        const lat = parseFloat(parts[parts.length - 2].replace(',', ''));
+        const lng = parseFloat(parts[parts.length - 1]);
+        return routePoints.find(p => p.latlng.lat.toFixed(6) == lat.toFixed(6) && p.latlng.lng.toFixed(6) == lng.toFixed(6));
+      });
+      if (newOrder.every(p => p)) {
+        routePoints = newOrder;
+        updateDistancesAndDurations(routePoints); 
+        localStorage.setItem('routePoints', JSON.stringify(routePoints));
+        localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+        renderRouteTable();
+        drawRoute();
+      }
+    });
+  });
+}
+
+const routePanel = document.getElementById('routePanel');
+let resultsBoxObserver = null;
+
+const waitForResultsBox = () => {
+  const resultsBox = document.querySelector('.leaflet-control-geocoder');
+  if (resultsBox) {
+    resultsBoxObserver = new MutationObserver(() => {
+      const box = resultsBox.querySelector('.leaflet-control-geocoder-alternatives');
+      if (box && box.offsetHeight > 0 && box.innerText.trim() !== '') {
+        const rect = box.getBoundingClientRect();
+        routePanel.style.top = `${rect.bottom + 10}px`;
+toggleRoutePanelBtn.style.top = `${rect.bottom + 15}px`;
+      } else {
+        routePanel.style.top = '130px';
+toggleRoutePanelBtn.style.top = '135px';
+
+      }
+    });
+    resultsBoxObserver.observe(resultsBox, {
+      childList: true,
+      subtree: true,
+    });
+  } else {
+    setTimeout(waitForResultsBox, 300);
+  }
+};
+
+waitForResultsBox();
+
+document.addEventListener('click', (e) => {
+  const geocoderEl = document.querySelector('.leaflet-control-geocoder');
+  const isClickInside = geocoderEl && geocoderEl.contains(e.target);
+  const resultsBox = geocoderEl.querySelector('.leaflet-control-geocoder-alternatives');
+
+  if (!isClickInside || (resultsBox && resultsBox.offsetHeight === 0)) {
+    routePanel.style.top = '130px';
+    toggleRoutePanelBtn.style.top = '135px';
+  }
+});
+const plateInput = document.getElementById('plateInput');
+const plateHeader = document.getElementById('plateHeader');
+
+function updatePlateHeader() {
+  const plate = plateInput.value.trim();
+  plateHeader.textContent = plate ? plate : 'BRAK TABLICY';
+  updateTruckPlate(); 
+}
+
+
+updatePlateHeader();
+plateInput.addEventListener('input', updatePlateHeader);
+const checkbox = document.getElementById('showTableInPreview');
+checkbox.addEventListener('change', () => {
+  localStorage.setItem('showTable', checkbox.checked ? 'true' : 'false');
+});
+const toggleRoutePanelBtn = document.getElementById('toggleRoutePanelBtn');
+
+toggleRoutePanelBtn.addEventListener('click', () => {
+  if (routePanel.classList.contains('hidden')) {
+    routePanel.classList.remove('hidden');
+    toggleRoutePanelBtn.textContent = 'Ukryj tabelę';
+    toggleRoutePanelBtn.style.background = 'rgba(0,0,0,0.6)';
+    toggleRoutePanelBtn.style.color = 'white';
+    localStorage.setItem('showTable', 'true'); 
+  } else {
+    routePanel.classList.add('hidden');
+    toggleRoutePanelBtn.textContent = 'Pokaż tabelę';
+    toggleRoutePanelBtn.style.background = 'rgba(255,255,255,0.6)';
+    toggleRoutePanelBtn.style.color = 'black';
+    localStorage.setItem('showTable', 'false');
+  }
+});
+
+window.addEventListener('load', () => {
+  routePanel.classList.remove('hidden');
+  toggleRoutePanelBtn.textContent = 'Ukryj tabelę';
+  toggleRoutePanelBtn.style.background = 'rgba(0,0,0,0.6)';
+  toggleRoutePanelBtn.style.color = 'white';
+
+  // nadpisz localStorage na true
+  localStorage.setItem('showTable', 'true');
+});
+
+</script>
+
+</body>
+</html>
