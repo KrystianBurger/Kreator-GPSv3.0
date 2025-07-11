@@ -7,7 +7,7 @@
     },
     {
       "source": "/podglad",
-      "destination": "/podglad.html"
+      "destination": "/index.html"
     }
   ]
 }
