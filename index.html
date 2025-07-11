@@ -476,10 +476,9 @@ function goToPreview() {
   const zoom = map.getZoom();
   const plate = document.getElementById('plateInput').value.trim();
   const markerPos = currentMarker.getLatLng();
- const showTable = document.getElementById('showTableInPreview').checked;
-localStorage.setItem('showTable', showTable ? 'true' : 'false');
+const showTable = localStorage.getItem('showTable') === 'true';
 
-  localStorage.setItem('mapData', JSON.stringify({
+localStorage.setItem('mapData', JSON.stringify({
     lat: markerPos.lat,
     lng: markerPos.lng,
     zoom,
