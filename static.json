@@ -4,6 +4,10 @@
     {
       "source": "/",
       "destination": "/index.html"
+    },
+    {
+      "source": "/podglad",
+      "destination": "/podglad.html"
     }
   ]
 }
