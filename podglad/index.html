@@ -357,10 +357,7 @@ routingControl.on('routesfound', function(e) {
     paddingBottomRight: [100, 200]
   });
 
-  setTimeout(() => {
-    map.invalidateSize();
-    download();
-  }, 200);
+  setTimeout(() => map.invalidateSize(), 300);
 });
 
       savedRoutePoints.forEach((point, idx) => {
@@ -473,7 +470,7 @@ routingControl.on('routesfound', function(e) {
       document.getElementById('returnContainer').style.display = 'none';
       download();
     });
-
+window.onload = () => setTimeout(download, 500);
   }
 </script>
 
