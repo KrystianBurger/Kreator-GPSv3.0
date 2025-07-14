@@ -473,9 +473,7 @@ routingControl.on('routesfound', function(e) {
       download();
     });
 
-    routingControl.on('routesfound', () => {
-  setTimeout(download, 200); // krótka pauza na dorysowanie
-});
+    window.onload = () => setTimeout(download, 600);
   }
 </script>
 
