@@ -301,7 +301,7 @@ function hoursToHHMM(hours) {
   return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
 }
   const mapData = JSON.parse(localStorage.getItem('mapData'));
-// Obsługa widoczności tabeli z kreatora
+
 const shouldShowTable = mapData.showTable !== false;
 document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'none';
 
@@ -349,7 +349,7 @@ routingControl.on('routesfound', function(e) {
   const bounds = L.latLngBounds(route.coordinates);
 
   if (savedRoutePoints.length > 0) {
-    bounds.extend(savedRoutePoints[savedRoutePoints.length - 1].latlng); // ciężarówka
+    bounds.extend(savedRoutePoints[savedRoutePoints.length - 1].latlng);
   }
 
   map.fitBounds(bounds, {
@@ -473,7 +473,9 @@ routingControl.on('routesfound', function(e) {
       download();
     });
 
-    window.onload = () => setTimeout(download, 800);
+    routingControl.on('routesfound', () => {
+  setTimeout(download, 200); // krótka pauza na dorysowanie
+});
   }
 </script>
 
