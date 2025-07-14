@@ -333,7 +333,7 @@ document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'no
    if (savedRoutePoints && savedRoutePoints.length >= 1) {
       const waypoints = savedRoutePoints.map(p => L.latLng(p.latlng.lat, p.latlng.lng));
 
-     const control = L.Routing.control({
+const routingControl = L.Routing.control({
   waypoints,
   lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
   createMarker: () => null,
@@ -342,17 +342,18 @@ document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'no
   show: false,
   fitSelectedRoutes: false
 }).addTo(map);
-control.on('routesfound', function(e) {
+
+routingControl.on('routesfound', function (e) {
   const route = e.routes[0];
+
   const bounds = L.latLngBounds(route.coordinates);
 
-  // dodaj też trucka do kadru
   const last = savedRoutePoints[savedRoutePoints.length - 1];
   if (last) bounds.extend([last.latlng.lat, last.latlng.lng]);
 
   map.fitBounds(bounds, {
-    paddingTopLeft: [100, 120],
-    paddingBottomRight: [100, 80]
+    paddingTopLeft: [100, 150],
+    paddingBottomRight: [100, 200]
   });
 });
 
