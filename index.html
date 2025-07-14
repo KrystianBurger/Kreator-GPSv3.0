@@ -450,9 +450,41 @@ function placeMarker(latlng) {
   if (currentMarker) {
     currentMarker.setLatLng(latlng);
   } else {
-    currentMarker = L.marker(latlng, {
-      icon: L.divIcon({ html, iconSize: [64, 80], iconAnchor: [32, 80], className: '' })
-    }).addTo(map);
+   currentMarker = L.marker(latlng, {
+  icon: L.divIcon({
+    html,
+    iconSize: [64, 80],
+    iconAnchor: [32, 80],
+    className: ''
+  }),
+  draggable: true
+}).addTo(map);
+
+currentMarker.on('dragend', () => {
+  const pos = currentMarker.getLatLng();
+
+  if (routePoints.length > 0) {
+    // Zmieniamy ostatni punkt
+    routePoints[routePoints.length - 1].latlng = { lat: pos.lat, lng: pos.lng };
+
+    // Zapis i przerysowanie
+    updateDistancesAndDurations(routePoints);
+    localStorage.setItem('routePoints', JSON.stringify(routePoints));
+    localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+
+    renderRouteTable();
+    drawRoute(); // <== to przerysowuje trasę i trucka
+  }
+
+  // Zapis do podglądu
+  const data = JSON.parse(localStorage.getItem('mapData') || '{}');
+  data.lat = pos.lat;
+  data.lng = pos.lng;
+  localStorage.setItem('mapData', JSON.stringify(data));
+});
+
+
+
   }
 }
 function updateTruckPlate() {
@@ -488,7 +520,7 @@ localStorage.setItem('mapData', JSON.stringify({
     showTable
   }));
 
-  window.location.href = '/podglad';
+  window.location.href = 'podglad.html';
 }
 
 
@@ -662,7 +694,25 @@ function drawRoute() {
     map.removeControl(routingControl);
     routingControl = null;
   }
-  
+  function makeMarkerDraggable(marker, point, index) {
+  marker.dragging.enable();
+  marker.on('dragend', (e) => {
+    const { lat, lng } = e.target.getLatLng();
+    point.latlng.lat = lat;
+    point.latlng.lng = lng;
+
+    updateDistancesAndDurations(routePoints);
+    saveRoutePoints();
+    renderRouteTable();
+    drawRoute();
+  });
+}
+
+function saveRoutePoints() {
+  localStorage.setItem('routePoints', JSON.stringify(routePoints));
+  localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
+}
+
   stopMarkers.forEach(m => map.removeLayer(m));
   stopMarkers = [];
 
@@ -681,14 +731,18 @@ function drawRoute() {
       if (idx === routePoints.length - 1) return;
       const label = String.fromCharCode(65 + idx);
       const marker = L.marker(point.latlng, {
-        icon: L.divIcon({
-          className: 'letter-marker',
-          html: `<div class="letter-pin">${label}</div>`,
-          iconSize: [24, 24],
-          iconAnchor: [12, 12]
-        })
-      }).addTo(map);
-      stopMarkers.push(marker);
+  icon: L.divIcon({
+    className: 'letter-marker',
+    html: `<div class="letter-pin">${label}</div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  }),
+  draggable: true
+}).addTo(map);
+
+makeMarkerDraggable(marker, point, idx);
+stopMarkers.push(marker);
+
     });
 
     if (currentMarker) {
@@ -843,6 +897,7 @@ window.addEventListener('load', () => {
   toggleRoutePanelBtn.style.background = 'rgba(0,0,0,0.6)';
   toggleRoutePanelBtn.style.color = 'white';
 
+  // nadpisz localStorage na true
   localStorage.setItem('showTable', 'true');
 });
 
