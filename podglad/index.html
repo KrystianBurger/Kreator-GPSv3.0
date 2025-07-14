@@ -321,6 +321,12 @@ document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'no
       attributionControl: false,
       inertia: false
     }).setView([mapCenterLat, mapCenterLng], zoom);
+map.on('moveend', () => {
+  const center = map.getCenter();
+  const zoom = map.getZoom();
+  localStorage.setItem('customMapView', JSON.stringify({ center, zoom }));
+  localStorage.setItem('customMapViewActive', 'true');
+});
 
     const accessToken = 'iGfxI5quBoIgFaUpxOCp2RMrEn7WNCpTqf1oYqS3r1ZAYijirmEGheUllO2RTwYG';
 
@@ -343,22 +349,25 @@ document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'no
   show: false,
   fitSelectedRoutes: false,
 }).addTo(map);
+const customViewActive = localStorage.getItem('customMapViewActive');
+const savedView = customViewActive === 'true' ? JSON.parse(localStorage.getItem('customMapView')) : null;
 
 routingControl.on('routesfound', function(e) {
   const route = e.routes[0];
   const bounds = L.latLngBounds(route.coordinates);
 
-  if (savedRoutePoints.length > 0) {
-    bounds.extend(savedRoutePoints[savedRoutePoints.length - 1].latlng);
+  if (savedView) {
+    map.setView(savedView.center, savedView.zoom);
+  } else {
+    map.fitBounds(bounds, {
+      paddingTopLeft: [100, 150],
+      paddingBottomRight: [100, 200]
+    });
   }
-
-  map.fitBounds(bounds, {
-    paddingTopLeft: [100, 150],
-    paddingBottomRight: [100, 200]
-  });
 
   setTimeout(() => map.invalidateSize(), 300);
 });
+
 
       savedRoutePoints.forEach((point, idx) => {
         if (idx === savedRoutePoints.length - 1) {
