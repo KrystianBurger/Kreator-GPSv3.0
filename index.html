@@ -704,6 +704,13 @@ function drawRoute() {
     renderRouteTable();
     drawRoute();
   });
+if (routePoints.length >= 1) {
+    const allLatLngs = routePoints.map(p => L.latLng(p.latlng.lat, p.latlng.lng));
+    if (currentMarker) {
+      allLatLngs.push(currentMarker.getLatLng());
+    }
+    map.fitBounds(L.latLngBounds(allLatLngs), { padding: [60, 60] });
+  }
 }
 
 function saveRoutePoints() {
