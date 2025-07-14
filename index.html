@@ -465,19 +465,16 @@ currentMarker.on('dragend', () => {
   const pos = currentMarker.getLatLng();
 
   if (routePoints.length > 0) {
-    // Zmieniamy ostatni punkt
     routePoints[routePoints.length - 1].latlng = { lat: pos.lat, lng: pos.lng };
 
-    // Zapis i przerysowanie
     updateDistancesAndDurations(routePoints);
     localStorage.setItem('routePoints', JSON.stringify(routePoints));
     localStorage.setItem('simpleRoute', JSON.stringify(routePoints.map(p => [p.latlng.lat, p.latlng.lng])));
 
     renderRouteTable();
-    drawRoute(); // <== to przerysowuje trasę i trucka
+    drawRoute();
   }
 
-  // Zapis do podglądu
   const data = JSON.parse(localStorage.getItem('mapData') || '{}');
   data.lat = pos.lat;
   data.lng = pos.lng;
@@ -898,7 +895,6 @@ window.addEventListener('load', () => {
   toggleRoutePanelBtn.style.background = 'rgba(0,0,0,0.6)';
   toggleRoutePanelBtn.style.color = 'white';
 
-  // nadpisz localStorage na true
   localStorage.setItem('showTable', 'true');
 });
 
