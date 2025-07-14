@@ -417,7 +417,12 @@ const map = L.map('map').setView([51.25, 22.57], 6);
 L.tileLayer(`https://tile.jawg.io/jawg-lagoon/{z}/{x}/{y}{r}.png?access-token=${accessToken}`, {
   minZoom: 0, maxZoom: 22
 }).addTo(map);
-
+map.on('moveend', () => {
+  const center = map.getCenter();
+  const zoom = map.getZoom();
+  localStorage.setItem('customMapView', JSON.stringify({ center, zoom }));
+  localStorage.setItem('customMapViewActive', 'true');
+});
 function hoursToHHMM(hours) {
   const h = Math.floor(hours);
   const m = Math.round((hours - h) * 60);
