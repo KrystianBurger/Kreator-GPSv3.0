@@ -333,19 +333,27 @@ document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'no
    if (savedRoutePoints && savedRoutePoints.length >= 1) {
       const waypoints = savedRoutePoints.map(p => L.latLng(p.latlng.lat, p.latlng.lng));
 
-      L.Routing.control({
-        waypoints,
-        lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
-        createMarker: () => null,
-        routeWhileDragging: false,
-        addWaypoints: false,
-        show: false,
-        fitSelectedRoutes: false,
-      }).addTo(map);
-const latlngs = savedRoutePoints.map(p => p.latlng);
-map.fitBounds(L.latLngBounds(latlngs), {
-  paddingTopLeft: [50, 120],
-  paddingBottomRight: [50, 50]
+     const control = L.Routing.control({
+  waypoints,
+  lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
+  createMarker: () => null,
+  routeWhileDragging: false,
+  addWaypoints: false,
+  show: false,
+  fitSelectedRoutes: false
+}).addTo(map);
+control.on('routesfound', function(e) {
+  const route = e.routes[0];
+  const bounds = L.latLngBounds(route.coordinates);
+
+  // dodaj też trucka do kadru
+  const last = savedRoutePoints[savedRoutePoints.length - 1];
+  if (last) bounds.extend([last.latlng.lat, last.latlng.lng]);
+
+  map.fitBounds(bounds, {
+    paddingTopLeft: [100, 120],
+    paddingBottomRight: [100, 80]
+  });
 });
 
 
