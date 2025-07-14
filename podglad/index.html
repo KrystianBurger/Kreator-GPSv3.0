@@ -273,7 +273,7 @@
 
   <div id="returnContainer" style="display:none;">
     <h3>Chcesz stworzyć nowy GPS?</h3>
-    <button id="returnBtn" onclick="window.location.href='/'">
+    <button id="returnBtn" onclick="window.location.href='index.html'">
       <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M15 18L9 12L15 6" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
       </svg>
@@ -301,6 +301,7 @@ function hoursToHHMM(hours) {
   return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}`;
 }
   const mapData = JSON.parse(localStorage.getItem('mapData'));
+// Obsługa widoczności tabeli z kreatora
 const shouldShowTable = mapData.showTable !== false;
 document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'none';
 
@@ -333,29 +334,32 @@ document.getElementById('routePanel').style.display = shouldShowTable ? '' : 'no
    if (savedRoutePoints && savedRoutePoints.length >= 1) {
       const waypoints = savedRoutePoints.map(p => L.latLng(p.latlng.lat, p.latlng.lng));
 
-const routingControl = L.Routing.control({
+      const routingControl = L.Routing.control({
   waypoints,
   lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
   createMarker: () => null,
   routeWhileDragging: false,
   addWaypoints: false,
   show: false,
-  fitSelectedRoutes: false
+  fitSelectedRoutes: false,
 }).addTo(map);
 
-routingControl.on('routesfound', function (e) {
+routingControl.on('routesfound', function(e) {
   const route = e.routes[0];
-
   const bounds = L.latLngBounds(route.coordinates);
 
-  const last = savedRoutePoints[savedRoutePoints.length - 1];
-  if (last) bounds.extend([last.latlng.lat, last.latlng.lng]);
+  if (savedRoutePoints.length > 0) {
+    bounds.extend(savedRoutePoints[savedRoutePoints.length - 1].latlng); // ciężarówka
+  }
 
   map.fitBounds(bounds, {
     paddingTopLeft: [100, 150],
     paddingBottomRight: [100, 200]
   });
+
+  setTimeout(() => map.invalidateSize(), 300);
 });
+
 
 
       savedRoutePoints.forEach((point, idx) => {
@@ -386,13 +390,6 @@ routingControl.on('routesfound', function (e) {
           }).addTo(map);
         }
       });
-
-     if (savedRoutePoints.length > 1) {
-  const latlngs = savedRoutePoints.map(p => p.latlng);
-  map.fitBounds(L.latLngBounds(latlngs), { padding: [50, 50] });
-} else {
-  map.setView([mapCenterLat, mapCenterLng], zoom);
-}
 
       const tbody = document.getElementById('routePointsBody');
       tbody.innerHTML = '';
