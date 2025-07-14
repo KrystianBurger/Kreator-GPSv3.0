@@ -725,13 +725,26 @@ function saveRoutePoints() {
   if (routePoints.length >= 2) {
     const waypoints = routePoints.map(p => L.latLng(p.latlng.lat, p.latlng.lng));
     routingControl = L.Routing.control({
-      waypoints,
-      lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
-      createMarker: () => null,
-      routeWhileDragging: false,
-      addWaypoints: false,
-      show: false
-    }).addTo(map);
+  waypoints,
+  lineOptions: { styles: [{ color: 'blue', weight: 5 }] },
+  createMarker: () => null,
+  routeWhileDragging: false,
+  addWaypoints: false,
+  show: false
+}).addTo(map);
+routingControl.on('routesfound', function(e) {
+  const route = e.routes[0];
+
+  const bounds = L.latLngBounds(route.coordinates);
+  if (currentMarker) {
+    bounds.extend(currentMarker.getLatLng());
+  }
+
+  map.fitBounds(bounds, {
+    paddingTopLeft: [100, 150],
+    paddingBottomRight: [100, 200]
+  });
+});
 
     routePoints.forEach((point, idx) => {
       if (idx === routePoints.length - 1) return;
