@@ -373,7 +373,7 @@ routingControl.on('routesfound', function(e) {
         if (idx === savedRoutePoints.length - 1) {
           const truckHtml = `
             <div class="marker">
-              <img src="https://i.postimg.cc/9FgRFkBs/truck.png" style="width: 64px; height: auto;" />
+              <img src="../truck.png" style="width: 64px; height: auto;" />
             </div>`;
           L.marker(point.latlng, {
             icon: L.divIcon({
@@ -431,7 +431,7 @@ routingControl.on('routesfound', function(e) {
 
     const html = `
       <div class="marker">
-        <img src="https://i.postimg.cc/9FgRFkBs/truck.png" alt="Truck" />
+        <img src="../truck.png" alt="Truck" />
         <div class="plate">${plate || 'BRAK'}</div>
       </div>
     `;
